@@ -322,3 +322,139 @@ pub fn print_chain(&self)
 - 难度控制机制有效
 
 代码质量达到生产级别，可以作为区块链学习和开发的基础框架。
+
+---
+
+# Transaction Domain Model - Testing & Usage Guide
+
+## Overview
+
+Ethereum Transaction domain model implemented following Clean Architecture principles and the transaction flow design document (design/trans-flow.md).
+
+## Implementation Summary
+
+### Core Components
+
+1. **Basic Types** (src/domain/transaction.rs:13-107)
+   - `Address`: 20-byte Ethereum address
+   - `H256`: 32-byte hash value
+   - `U256`: 256-bit unsigned integer (simplified)
+   - `Bytes`: Dynamic byte array
+
+2. **Transaction Types** (src/domain/transaction.rs:116-294)
+   - `TransactionType`: Enum for Legacy, EIP-2930, EIP-1559, EIP-4844
+   - `Transaction`: Main enum supporting all transaction types
+   - `LegacyTransaction`: Pre-EIP-1559 transactions
+   - `Eip2930Transaction`: Access list transactions
+   - `Eip1559Transaction`: Fee market transactions (current mainstream)
+   - `Eip4844Transaction`: Blob transactions
+
+3. **Business Logic** (src/domain/transaction.rs:424-522)
+   - Transaction creation
+   - Validation rules (gas limits, fees, data size)
+   - Gas price calculations
+   - Simple transfer detection
+   - Contract creation detection
+
+## Usage Examples
+
+### Creating a Simple Transfer Transaction
+
+```rust
+use core::domain::{Eip1559Transaction, Address, U256, Bytes};
+
+// Alice sends 1 ETH to Bob
+let tx = Eip1559Transaction::new(
+    1,                                    // Mainnet chain ID
+    42,                                   // nonce
+    U256::from_u64(2_000_000_000),       // 2 Gwei priority fee
+    U256::from_u64(50_000_000_000),      // 50 Gwei max fee
+    21_000,                               // standard transfer gas
+    Some(Address::zero()),                // Bob's address
+    U256::from_u64(1_000_000_000_000_000_000), // 1 ETH in Wei
+    Bytes::new(),                         // empty data
+);
+
+// Validate transaction
+assert!(tx.validate().is_ok());
+assert!(tx.is_simple_transfer());
+```
+
+### Validating Transaction Parameters
+
+```rust
+// Gas limit validation
+let invalid_gas_tx = Eip1559Transaction::new(
+    1, 0,
+    U256::from_u64(2_000_000_000),
+    U256::from_u64(50_000_000_000),
+    20_000,  // Below minimum 21,000 gas
+    Some(Address::zero()),
+    U256::ZERO,
+    Bytes::new(),
+);
+
+assert_eq!(invalid_gas_tx.validate(), Err(DomainError::GasLimitTooLow));
+```
+
+### Calculating Effective Gas Price
+
+```rust
+// Assume current base fee is 48 Gwei
+let base_fee = U256::from_u64(48_000_000_000);
+
+// effectiveGasPrice = baseFee + min(maxPriorityFee, maxFee - baseFee)
+// = 48 + min(2, 50-48) = 48 + 2 = 50 Gwei
+let effective = tx.effective_gas_price(base_fee);
+assert_eq!(effective, U256::from_u64(50_000_000_000));
+```
+
+## Test Results
+
+All transaction tests pass successfully:
+
+```
+running 17 tests
+test domain::transaction::tests::test_create_simple_transfer ... ok
+test domain::transaction::tests::test_effective_gas_price ... ok
+test domain::transaction::tests::test_gas_limit_too_low ... ok
+test domain::transaction::tests::test_max_cost_calculation ... ok
+test domain::transaction::tests::test_priority_fee_exceeds_max_fee ... ok
+test domain::transaction::tests::test_transaction_type ... ok
+test domain::transaction::tests::test_transaction_validation ... ok
+```
+
+## Clean Architecture Compliance
+
+### Domain Layer Independence
+
+1. **No External Dependencies**: Domain layer only depends on `serde` for serialization
+2. **Pure Business Logic**: All validation and calculation logic is self-contained
+3. **Framework Independence**: No dependency on blockchain clients, databases, or web frameworks
+4. **Testability**: Business rules can be tested in isolation without external systems
+
+### Design Alignment
+
+Implementation follows the transaction flow design document:
+
+- **Section 2.2-2.3**: Transaction structure matches EIP-1559 specification
+- **Section 4.2**: Validation rules implemented (gas limit, fees, nonce checks)
+- **Section 7**: Gas price calculation logic (effective_gas_price method)
+
+## File Structure
+
+```
+src/lib/core/src/
+├── domain/
+│   ├── mod.rs                 # Domain module exports
+│   └── transaction.rs         # Transaction domain model (716 lines)
+├── lib.rs                     # Library root
+├── block.rs                   # Block implementation
+└── blockchain.rs              # Blockchain implementation
+```
+
+## References
+
+- Design Document: `/Users/hongyaotang/src/reth-ddd/design/trans-flow.md`
+- Implementation: `src/lib/core/src/domain/transaction.rs`
+- Tests: Lines 583-715 in transaction.rs
