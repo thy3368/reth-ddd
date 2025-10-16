@@ -1,0 +1,149 @@
+# Rustfmt 代码格式化配置
+# 参考: https://rust-lang.github.io/rustfmt/
+
+# ========== 基础配置 ==========
+
+# 编辑模式：覆盖文件
+edition = "2021"
+
+# 最大行宽
+max_width = 100
+
+# 硬标签宽度
+hard_tabs = false
+tab_spaces = 4
+
+# ========== 导入配置 ==========
+
+# 导入项分组
+imports_granularity = "Crate"
+
+# 按字母顺序重新排序导入
+reorder_imports = true
+
+# 按字母顺序重新排序模块
+reorder_modules = true
+
+# 合并导入
+imports_layout = "Mixed"
+
+# ========== 格式化风格 ==========
+
+# 函数调用风格
+fn_call_width = 80
+
+# 数组宽度
+array_width = 80
+
+# 链式方法调用宽度
+chain_width = 80
+
+# 结构体字面量宽度
+struct_lit_width = 40
+
+# 结构体变体宽度
+struct_variant_width = 40
+
+# ========== 注释配置 ==========
+
+# 格式化注释
+comment_width = 100
+wrap_comments = true
+
+# 格式化文档注释
+format_code_in_doc_comments = true
+normalize_comments = true
+normalize_doc_attributes = true
+
+# ========== 换行配置 ==========
+
+# 新行风格
+newline_style = "Unix"
+
+# 在文件末尾添加新行
+fn_single_line = false
+
+# 控制流单行
+control_brace_style = "AlwaysSameLine"
+
+# ========== 空格配置 ==========
+
+# 类型标点后的空格
+space_after_colon = true
+space_before_colon = false
+
+# 二元运算符周围的空格
+spaces_around_ranges = false
+
+# ========== Match 表达式配置 ==========
+
+# match 分支尾随逗号
+match_block_trailing_comma = true
+
+# 使用字段初始化简写
+use_field_init_shorthand = true
+
+# ========== 特殊格式 ==========
+
+# 合并派生
+merge_derives = true
+
+# 使用 try shorthand
+use_try_shorthand = true
+
+# ========== 宏配置 ==========
+
+# 格式化宏
+format_macro_matchers = true
+format_macro_bodies = true
+
+# ========== Trait 配置 ==========
+
+# 空 trait 的格式
+empty_item_single_line = true
+
+# ========== 函数定义配置 ==========
+
+# 函数参数缩进
+fn_params_layout = "Tall"
+
+# where 子句缩进风格
+where_single_line = false
+
+# ========== Unstable 特性 (需要 nightly) ==========
+# 取消注释以下选项需要使用 rustfmt nightly 版本
+
+# 格式化字符串
+# format_strings = true
+
+# 导入合并
+# imports_granularity = "Crate"
+
+# 组导入
+# group_imports = "StdExternalCrate"
+
+# 条件编译缩进
+# indent_preprocessor = false
+
+# ========== 自定义配置（针对低延迟项目）==========
+
+# 保持简洁的代码风格以提高可读性
+# 这对于性能关键代码的审查很重要
+
+# 单行if
+single_line_if_else_max_width = 50
+
+# 强制显式返回
+force_explicit_abi = true
+
+# 十六进制字面量大写
+hex_literal_case = "Lower"
+
+# ========== 错误处理 ==========
+
+# 遇到错误时的行为
+error_on_line_overflow = false
+error_on_unformatted = false
+
+# ========== 忽略配置 ==========
+# 可以使用 #[rustfmt::skip] 或 #![rustfmt::skip::attributes(...)] 来跳过格式化
